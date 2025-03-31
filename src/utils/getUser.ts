@@ -11,7 +11,7 @@ const getUser = async (dispatch:AppDispatch) => {
   if (user?.status != 200) {
     return false;
   }
-  dispatch(setUser(user?.data))
+  dispatch(setUser(user?.data?.user))
   return true;
 };
 
