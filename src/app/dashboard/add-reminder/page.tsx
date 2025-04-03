@@ -1,13 +1,19 @@
 "use client";
 import React, { useRef, useState } from "react";
-import EmailEditor, { EditorRef, EmailEditorProps } from "react-email-editor";
-import "../../globals.css"
+import { EditorRef, EmailEditorProps } from "react-email-editor";
+import "../../globals.css";
+import dynamic from "next/dynamic";
+import axios from "axios";
+import { getCookie } from "@/services/api";
+
+const EmailEditor = dynamic(() => import("react-email-editor"), { ssr: false });
+
 const AddReminder = () => {
   const emailEditorRef = useRef<EditorRef>(null);
   const [showExtraInformation, setShowExtraInformation] = useState(false);
   const onReady: EmailEditorProps["onReady"] = (unlayer) => {};
   const [input, setInput] = useState({
-    reciever_info:"",
+    reciever_info: "",
     priority: "low",
     data: "",
     data_type: "html",
@@ -40,8 +46,12 @@ const AddReminder = () => {
     <div className="h-full">
       {showExtraInformation ? (
         <form className="form-container">
-        <div> Reciever Email</div>
-        <input name="reciever_info" value={input?.reciever_info} onChange={handleChange}/>
+          <div> Reciever Email</div>
+          <input
+            name="reciever_info"
+            value={input?.reciever_info}
+            onChange={handleChange}
+          />
           <div>Priority</div>
           <select
             name="priority"
@@ -54,7 +64,7 @@ const AddReminder = () => {
           </select>
           <div>Data Type</div>
           <select disabled>
-          <option value={"html"}>HTML</option>
+            <option value={"html"}>HTML</option>
           </select>
           <div>Date</div>
           <input
@@ -70,12 +80,75 @@ const AddReminder = () => {
             onChange={handleChange}
             type="time"
           />
-            <button className="btn mt-4">Submit</button>
+          <button
+            className="btn mt-4"
+            onClick={async (e) => {
+              e.preventDefault();
+              try {
+                const res = await axios.post(
+                  `${process.env.SERVER}/reminder/add-reminder`,
+                  {
+                    reciever_info: input?.reciever_info,
+                    priority: input?.priority,
+                    data: input?.data,
+                    data_type: input?.data_type,
+                    reminder_type: input?.reminder_type,
+                    date: input?.date,
+                    time: input?.time,
+                  },
+                  {
+                    headers: {
+                      Authorization: `Bearer ${getCookie("auth")}`,
+                    },
+                  }
+                );
+              } catch (error) {
+                console.log("Error is:", error);
+              }
+            }}
+          >
+            Submit
+          </button>
         </form>
       ) : (
         <>
-          <div>
-            <button onClick={exportHtml}>Export HTML</button>
+          <div className="flex gap-2">
+            <button
+              className="bg-gray-400 p-2 rounded-md text-white"
+              onClick={async (e) => {
+                try {
+                  let str=""
+                  const unlayer = emailEditorRef.current?.editor;
+                  unlayer?.exportHtml(async(data) => {
+                    const { design, html } = data;
+                    console.log("data is:",html)
+                    const res = await axios.post(
+                      `${process.env.SERVER}/reminder/add-draft`,
+                      {
+                        data: html,
+                        data_type: input?.data_type,
+                        reminder_type: input?.reminder_type,
+                      },
+                      {
+                        headers: {
+                          Authorization: `Bearer ${getCookie("auth")}`,
+                        },
+                      }
+                    );
+                  });
+                } catch (error) {
+                  console.log("Error is:", error);
+                }
+              }}
+            >
+              Save Draft
+            </button>
+            <button
+              className="bg-blue-500 p-2 rounded-md text-white"
+              onClick={exportHtml}
+            >
+              Export HTML
+            </button>
           </div>
 
           <EmailEditor

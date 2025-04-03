@@ -1,3 +1,4 @@
+"use client";
 import AddReminder from "@/app/components/AddReminder";
 import React from "react";
 
