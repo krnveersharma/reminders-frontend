@@ -118,3 +118,21 @@ label {
 .btn:hover {
   background-color: #0056b3;
 }
+
+
+.blinking-circle {
+  width: 6px;            
+  height: 6px; 
+  background-color: #22c55e;
+  border-radius: 20px; 
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}

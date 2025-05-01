@@ -38,8 +38,9 @@ const Reminders = () => {
         <DraftReminder selectedDraft={selectedDraft}/>
     :<div className="flex flex-wrap gap-4">
       <AddReminder />
-      {remindersDraft.map((item:ReminderDraft) => (
+      {remindersDraft.map((item:ReminderDraft,index) => (
         <div
+        key={index}
           className="h-[200px] w-[200px] bg-gray-200 flex justify-center items-center cursor-pointer"
           onClick={()=>setSelectedDraft(item)}
         >draft</div>

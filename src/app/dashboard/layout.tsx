@@ -7,9 +7,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="grid grid-cols-[auto_1fr] h-screen">
+    <div className="grid grid-cols-[220px_1fr] h-screen bg-gray-100 px-32">
       <LeftBar />
-      <div className="p-4">{children}</div>
+      <div className="p-6 overflow-y-auto">{children}</div>
     </div>
   );
 }

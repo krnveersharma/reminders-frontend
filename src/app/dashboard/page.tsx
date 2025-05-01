@@ -1,42 +1,33 @@
-"use client"
+"use client";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import LiveCount from "@/app/components/LiveCount"
+import "@/app/globals.css"
+import SevenDaysReminders from "../components/SevenDaysReminders";
+import PrevUserReminders from "../components/PrevUserReminders";
+const DashBoard = () => {
+  return (
+    <div className="min-h-screen bg-white p-6">
+      <div className="max-w-6xl mx-auto space-y-12">
+        <LiveCount />
 
-const DashBoard=()=>{
-   const[remindersCount,setRemindersCount]=useState(0)
-   useEffect(()=>{
-      (async()=>{
-         try {
-            const res=await axios.get(`${process.env.SERVER}/dashboard/reminder-count`)
-            setRemindersCount(res?.data?.message)
-            
-            const eventSource=new EventSource(`${process.env.SERVER}/sse-dashboard/get-total-reminders`)
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">All Reminders</h2>
+          <div className="bg-gray-50 p-4 rounded-2xl shadow-sm">
+            <SevenDaysReminders />
+          </div>
+        </div>
 
-            eventSource.onmessage=(event)=>{
-               const newCount=parseInt(event.data)
-               console.log("new count is:",newCount)
-               setRemindersCount(newCount)
-            }
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Your Reminders</h2>
+          <div className="bg-gray-50 p-4 rounded-2xl shadow-sm">
+            <PrevUserReminders />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-            eventSource.onerror=(error)=>{
-               console.log("SSE connection error:",error)
-               eventSource.close();
-            }
-            
 
-            return()=>{
-               eventSource.close();
-            }
-         } catch (error) {
-            
-         }
-      })()
-      
-   },[])
- return(
-    <>
-    </>
- )
-}
-
-export default DashBoard
+export default DashBoard;
