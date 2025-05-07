@@ -5,10 +5,12 @@ import "../../globals.css";
 import dynamic from "next/dynamic";
 import axios from "axios";
 import { getCookie } from "@/services/api";
+import { useRouter } from "next/navigation";
 
 const EmailEditor = dynamic(() => import("react-email-editor"), { ssr: false });
 
 const AddReminder = () => {
+  const router = useRouter();
   const emailEditorRef = useRef<EditorRef>(null);
   const [showExtraInformation, setShowExtraInformation] = useState(false);
   const onReady: EmailEditorProps["onReady"] = (unlayer) => {};
@@ -40,6 +42,43 @@ const AddReminder = () => {
       ...prev,
       [e.target.name]: e.target.value,
     }));
+  };
+
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(
+        `${process.env.SERVER}/reminder/add-reminder`,
+        {
+          reciever_info: input?.reciever_info,
+          priority: input?.priority,
+          data: input?.data,
+          data_type: input?.data_type,
+          reminder_type: input?.reminder_type,
+          date: input?.date,
+          time: input?.time,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie("auth")}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.log("jatt di pasand");
+
+      if (axios.isAxiosError(error) && error.response) {
+        const statusCode = error.response.status;
+        console.log("jatt di pasand");
+
+        if (statusCode == 403) {
+          console.log("jatt di pasand");
+
+          router.push("./update-plans");
+          console.log("jatt di pasand");
+        }
+      }
+    }
   };
 
   return (
@@ -80,33 +119,7 @@ const AddReminder = () => {
             onChange={handleChange}
             type="time"
           />
-          <button
-            className="btn mt-4"
-            onClick={async (e) => {
-              e.preventDefault();
-              try {
-                const res = await axios.post(
-                  `${process.env.SERVER}/reminder/add-reminder`,
-                  {
-                    reciever_info: input?.reciever_info,
-                    priority: input?.priority,
-                    data: input?.data,
-                    data_type: input?.data_type,
-                    reminder_type: input?.reminder_type,
-                    date: input?.date,
-                    time: input?.time,
-                  },
-                  {
-                    headers: {
-                      Authorization: `Bearer ${getCookie("auth")}`,
-                    },
-                  }
-                );
-              } catch (error) {
-                console.log("Error is:", error);
-              }
-            }}
-          >
+          <button className="btn mt-4" onClick={(e)=>handleSubmit(e)}>
             Submit
           </button>
         </form>
@@ -117,11 +130,11 @@ const AddReminder = () => {
               className="bg-gray-400 p-2 rounded-md text-white"
               onClick={async (e) => {
                 try {
-                  let str=""
+                  let str = "";
                   const unlayer = emailEditorRef.current?.editor;
-                  unlayer?.exportHtml(async(data) => {
+                  unlayer?.exportHtml(async (data) => {
                     const { design, html } = data;
-                    console.log("data is:",html)
+                    console.log("data is:", html);
                     const res = await axios.post(
                       `${process.env.SERVER}/reminder/add-draft`,
                       {

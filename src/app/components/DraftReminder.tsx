@@ -6,10 +6,12 @@ import dynamic from "next/dynamic";
 import axios from "axios";
 import { getCookie } from "@/services/api";
 import { ReminderDraft } from "../dashboard/reminders/page";
+import { useRouter } from "next/navigation";
 
 const EmailEditor = dynamic(() => import("react-email-editor"), { ssr: false });
 
 const DraftReminder = ({selectedDraft}:{selectedDraft:ReminderDraft}) => {
+  const router=useRouter()
   const emailEditorRef = useRef<EditorRef>(null);
   const [showExtraInformation, setShowExtraInformation] = useState(false);
   const onReady: EmailEditorProps["onReady"] = (unlayer) => {};
@@ -22,6 +24,41 @@ const DraftReminder = ({selectedDraft}:{selectedDraft:ReminderDraft}) => {
     date: "",
     time: "",
   });
+
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(
+        `${process.env.SERVER}/reminder/add-reminder`,
+        {
+          reciever_info: input?.reciever_info,
+          priority: input?.priority,
+          data: input?.data,
+          data_type: input?.data_type,
+          reminder_type: input?.reminder_type,
+          date: input?.date,
+          time: input?.time,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie("auth")}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.log("jatt di pasand");
+
+      if (axios.isAxiosError(error) && error.response) {
+        const statusCode = error.response.status;
+        console.log("jatt di pasand");
+
+        if (statusCode == 403) {
+          router.push("./update-plans");
+        }
+      }
+    }
+  };
+
 
   const exportHtml = () => {
     const unlayer = emailEditorRef.current?.editor;
@@ -83,30 +120,7 @@ const DraftReminder = ({selectedDraft}:{selectedDraft:ReminderDraft}) => {
           />
           <button
             className="btn mt-4"
-            onClick={async (e) => {
-              e.preventDefault();
-              try {
-                const res = await axios.post(
-                  `${process.env.SERVER}/reminder/add-reminder`,
-                  {
-                    reciever_info: input?.reciever_info,
-                    priority: input?.priority,
-                    data: input?.data,
-                    data_type: input?.data_type,
-                    reminder_type: input?.reminder_type,
-                    date: input?.date,
-                    time: input?.time,
-                  },
-                  {
-                    headers: {
-                      Authorization: `Bearer ${getCookie("auth")}`,
-                    },
-                  }
-                );
-              } catch (error) {
-                console.log("Error is:", error);
-              }
-            }}
+            onClick={handleSubmit}
           >
             Submit
           </button>
